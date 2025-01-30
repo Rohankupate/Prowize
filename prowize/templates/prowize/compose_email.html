@@ -1,0 +1,125 @@
+{% extends "prowize/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Compose Email - Prowize{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Compose Email</h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">Send personalized emails to HR contacts.</p>
+    </div>
+    <div class="border-t border-gray-200">
+        <form method="post" enctype="multipart/form-data" class="space-y-8 divide-y divide-gray-200">
+            {% csrf_token %}
+            <div class="px-4 py-5 sm:p-6">
+                <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                    <!-- Template Selection -->
+                    <div class="sm:col-span-6">
+                        <label for="{{ form.template.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.template.label }}
+                        </label>
+                        <div class="mt-1">
+                            {{ form.template|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <!-- HR Contacts -->
+                    <div class="sm:col-span-6">
+                        <label for="{{ form.hr_contacts.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.hr_contacts.label }}
+                        </label>
+                        <div class="mt-1">
+                            {{ form.hr_contacts|as_crispy_field }}
+                        </div>
+                        <p class="mt-2 text-sm text-gray-500">{{ form.hr_contacts.help_text }}</p>
+                    </div>
+
+                    <!-- Subject -->
+                    <div class="sm:col-span-6">
+                        <label for="{{ form.subject.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.subject.label }}
+                        </label>
+                        <div class="mt-1">
+                            {{ form.subject|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <!-- Email Body -->
+                    <div class="sm:col-span-6">
+                        <label for="{{ form.body.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.body.label }}
+                        </label>
+                        <div class="mt-1">
+                            {{ form.body|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <!-- Attachments -->
+                    <div class="sm:col-span-6">
+                        <label for="{{ form.attachments.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.attachments.label }}
+                        </label>
+                        <div class="mt-1">
+                            {{ form.attachments|as_crispy_field }}
+                        </div>
+                        <p class="mt-2 text-sm text-gray-500">{{ form.attachments.help_text }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Send Email
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Initialize Select2
+        $('.select2').select2({
+            theme: 'classic',
+            placeholder: 'Select HR contacts',
+            allowClear: true
+        });
+
+        // Initialize TinyMCE
+        tinymce.init({
+            selector: '#{{ form.body.id_for_label }}',
+            height: 400,
+            menubar: false,
+            plugins: [
+                'advlist autolink lists link image charmap print preview anchor',
+                'searchreplace visualblocks code fullscreen',
+                'insertdatetime media table paste code help wordcount'
+            ],
+            toolbar: 'undo redo | formatselect | bold italic backcolor | \
+                alignleft aligncenter alignright alignjustify | \
+                bullist numlist outdent indent | removeformat | help'
+        });
+
+        // Handle template selection
+        $('#{{ form.template.id_for_label }}').change(function() {
+            var templateId = $(this).val();
+            if (templateId) {
+                $.get('/api/templates/' + templateId + '/', function(data) {
+                    $('#{{ form.subject.id_for_label }}').val(data.subject);
+                    tinymce.get('{{ form.body.id_for_label }}').setContent(data.body);
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

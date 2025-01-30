@@ -1,0 +1,14 @@
+Django==5.0
+mysqlclient==2.2.1
+python-dotenv==1.0.0
+google-auth-oauthlib==1.2.0
+google-auth-httplib2==0.2.0
+google-api-python-client==2.114.0
+django-tailwind==3.8.0
+django-allauth==0.60.1
+django-crispy-forms==2.1
+crispy-tailwind==0.5.0
+django-ratelimit==4.1.0
+django-environ==0.11.2
+gunicorn==21.2.0
+whitenoise==6.6.0

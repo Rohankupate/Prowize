@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Compose Email - Prowize{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">Compose Email</h2>
+        </div>
+        
+        <form id="email-form" class="p-6 space-y-6">
+            {% csrf_token %}
+            
+            <!-- Template Selection -->
+            <div>
+                {{ form.template|as_crispy_field }}
+            </div>
+            
+            <!-- Email Fields -->
+            <div class="grid grid-cols-1 gap-6">
+                <div>
+                    {{ form.subject|as_crispy_field }}
+                </div>
+                <div>
+                    {{ form.to_email|as_crispy_field }}
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        {{ form.cc|as_crispy_field }}
+                    </div>
+                    <div>
+                        {{ form.bcc|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <!-- Rich Text Editor -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email Body</label>
+                    <div id="editor" class="h-64 border rounded-md">{{ form.body.value|default:'' }}</div>
+                    <input type="hidden" name="body" id="body-content">
+                </div>
+                
+                <!-- Attachments -->
+                <div>
+                    {{ form.attachments|as_crispy_field }}
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="flex justify-end space-x-4">
+                <button type="button" onclick="window.history.back()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Send Email
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Quill editor
+    var quill = new Quill('#editor', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'align': [] }],
+                ['link', 'image'],
+                ['clean']
+            ]
+        }
+    });
+
+    // Handle template selection
+    document.getElementById('id_template').addEventListener('change', function(e) {
+        if (e.target.value) {
+            fetch(`/api/templates/${e.target.value}/`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('id_subject').value = data.subject;
+                    quill.root.innerHTML = data.body;
+                })
+                .catch(error => console.error('Error loading template:', error));
+        }
+    });
+
+    // Handle form submission
+    document.getElementById('email-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Get form data
+        const formData = new FormData(this);
+        formData.set('body', quill.root.innerHTML);
+        
+        // Send email
+        fetch('/email/send/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '{% url "prowize:dashboard" %}';
+            } else {
+                alert(data.message || 'Error sending email');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error sending email');
+        });
+    });
+});
+</script>
+{% endblock %}

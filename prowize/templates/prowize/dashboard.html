@@ -1,0 +1,80 @@
+{% extends "prowize/base.html" %}
+
+{% block title %}Dashboard - Prowize{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <!-- Stats -->
+    <div class="px-4 py-5 sm:p-6">
+        <dl class="grid grid-cols-1 gap-5 sm:grid-cols-4">
+            <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                <dt class="text-sm font-medium text-gray-500 truncate">Total Emails Sent</dt>
+                <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ total_sent }}</dd>
+            </div>
+            <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                <dt class="text-sm font-medium text-gray-500 truncate">Emails Opened</dt>
+                <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ total_opened }}</dd>
+            </div>
+            <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                <dt class="text-sm font-medium text-gray-500 truncate">Emails Delivered</dt>
+                <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ total_delivered }}</dd>
+            </div>
+            <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                <dt class="text-sm font-medium text-gray-500 truncate">Failed Emails</dt>
+                <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ total_failed }}</dd>
+            </div>
+        </dl>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Activity</h3>
+    </div>
+    <div class="border-t border-gray-200">
+        <ul role="list" class="divide-y divide-gray-200">
+            {% for email in sent_emails %}
+            <li class="px-4 py-4 sm:px-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <img class="h-12 w-12 rounded-full" src="{{ email.user.profile_picture|default:'https://ui-avatars.com/api/?name='|add:email.user.username }}" alt="">
+                        </div>
+                        <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-900">
+                                To: {{ email.hr_contact.name }}
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                {{ email.subject }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ml-6 flex items-center">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if email.status == 'sent' %}bg-green-100 text-green-800{% elif email.status == 'failed' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ email.status|title }}
+                        </span>
+                        <a href="{% url 'prowize:email_detail' email.tracking_id %}" class="ml-4 text-sm font-medium text-blue-600 hover:text-blue-500">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </li>
+            {% empty %}
+            <li class="px-4 py-12">
+                <div class="text-center">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">No emails sent</h3>
+                    <p class="mt-1 text-sm text-gray-500">Get started by composing your first email.</p>
+                    <div class="mt-6">
+                        <a href="{% url 'prowize:compose_email' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Compose Email
+                        </a>
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

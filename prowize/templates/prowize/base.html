@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Prowize - HR Email Management{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    {% load static %}
+    <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+    <style type="text/tailwindcss">
+        @layer components {
+            .btn-primary {
+                @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+            }
+            .btn-secondary {
+                @apply inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="h-full">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <a href="{% url 'prowize:dashboard' %}" class="text-2xl font-bold text-blue-600">Prowize</a>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <a href="{% url 'prowize:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}border-blue-500 text-gray-900{% else %}border-transparent text-gray-500{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Dashboard
+                        </a>
+                        <a href="{% url 'prowize:compose_email' %}" class="{% if request.resolver_match.url_name == 'compose_email' %}border-blue-500 text-gray-900{% else %}border-transparent text-gray-500{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Compose Email
+                        </a>
+                        <a href="{% url 'prowize:sent_emails' %}" class="{% if request.resolver_match.url_name == 'sent_emails' %}border-blue-500 text-gray-900{% else %}border-transparent text-gray-500{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Sent Emails
+                        </a>
+                        <a href="{% url 'prowize:hr_contacts' %}" class="{% if request.resolver_match.url_name == 'hr_contacts' %}border-blue-500 text-gray-900{% else %}border-transparent text-gray-500{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            HR Contacts
+                        </a>
+                        <a href="{% url 'prowize:email_templates' %}" class="{% if request.resolver_match.url_name == 'email_templates' %}border-blue-500 text-gray-900{% else %}border-transparent text-gray-500{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Templates
+                        </a>
+                    </div>
+                </div>
+                <div class="hidden sm:ml-6 sm:flex sm:items-center">
+                    {% if user.is_authenticated %}
+                    <div class="ml-3 relative">
+                        <div class="flex items-center space-x-4">
+                            <img class="h-8 w-8 rounded-full" src="{{ user.profile_picture|default:'https://ui-avatars.com/api/?name='|add:user.username }}" alt="{{ user.username }}">
+                            <div class="text-sm">
+                                <p class="text-gray-900 font-medium">{{ user.get_full_name|default:user.username }}</p>
+                                <p class="text-gray-500">{{ user.email }}</p>
+                            </div>
+                            <a href="{% url 'account_logout' %}" class="text-gray-500 hover:text-gray-700">
+                                Logout
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="flex items-center space-x-4">
+                        <a href="{% url 'account_login' %}" class="text-gray-500 hover:text-gray-700">Login</a>
+                        <a href="{% url 'account_signup' %}" class="btn-primary">Sign Up</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {% if messages %}
+        <div class="mb-8">
+            {% for message in messages %}
+            <div class="rounded-md p-4 {% if message.tags == 'success' %}bg-green-50 text-green-700{% elif message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-blue-50 text-blue-700{% endif %}">
+                <p class="text-sm font-medium">{{ message }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white mt-12">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div class="mt-8 border-t border-gray-200 pt-8 md:flex md:items-center md:justify-between">
+                <div class="flex space-x-6 md:order-2">
+                    <a href="#" class="text-gray-400 hover:text-gray-500">
+                        <span class="sr-only">Help</span>
+                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 100-16 8 8 0 000 16zm-1-5h2v2h-2v-2zm2-1.645V14h-2v-1.5a1 1 0 011-1 1.5 1.5 0 10-1.471-1.794l-1.962-.393A3.5 3.5 0 1113 13.355z"/>
+                        </svg>
+                    </a>
+                </div>
+                <p class="mt-8 text-base text-gray-400 md:mt-0 md:order-1">
+                    &copy; {% now "Y" %} Prowize. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

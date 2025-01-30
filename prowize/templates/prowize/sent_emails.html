@@ -1,0 +1,136 @@
+{% extends "prowize/base.html" %}
+
+{% block title %}Sent Emails - Prowize{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Sent Emails</h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">A list of all emails you have sent.</p>
+        </div>
+        <div class="flex-shrink-0">
+            <form method="get" class="flex space-x-4">
+                <div class="flex-1 min-w-0">
+                    <label for="search" class="sr-only">Search</label>
+                    <div class="relative rounded-md shadow-sm">
+                        <input type="text" name="q" id="search" value="{{ search_query|default:'' }}" class="focus:ring-blue-500 focus:border-blue-500 block w-full pr-10 sm:text-sm border-gray-300 rounded-md" placeholder="Search emails...">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Search
+                </button>
+            </form>
+        </div>
+    </div>
+    <div class="border-t border-gray-200">
+        {% if emails %}
+        <ul role="list" class="divide-y divide-gray-200">
+            {% for email in emails %}
+            <li>
+                <a href="{% url 'prowize:email_detail' email.tracking_id %}" class="block hover:bg-gray-50">
+                    <div class="px-4 py-4 sm:px-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <img class="h-12 w-12 rounded-full" src="{{ email.hr_contact.profile_picture|default:'https://ui-avatars.com/api/?name='|add:email.hr_contact.name }}" alt="">
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-900">
+                                        To: {{ email.hr_contact.name }}
+                                    </p>
+                                    <p class="text-sm text-gray-500">
+                                        {{ email.subject }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="ml-6 flex items-center">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if email.status == 'sent' %}bg-green-100 text-green-800{% elif email.status == 'failed' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ email.status|title }}
+                                </span>
+                                <p class="ml-4 text-sm text-gray-500">
+                                    {{ email.sent_at|timesince }} ago
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-2 sm:flex sm:justify-between">
+                            <div class="sm:flex">
+                                {% if email.template %}
+                                <p class="flex items-center text-sm text-gray-500">
+                                    <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+                                    </svg>
+                                    Template: {{ email.template.name }}
+                                </p>
+                                {% endif %}
+                                {% if email.attachments.exists %}
+                                <p class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                                    <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd" />
+                                    </svg>
+                                    {{ email.attachments.count }} attachment{{ email.attachments.count|pluralize }}
+                                </p>
+                                {% endif %}
+                            </div>
+                            <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                {% if email.opened_at %}
+                                <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                                Opened {{ email.opened_at|timesince }} ago
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% if emails.has_other_pages %}
+        <nav class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div class="hidden sm:block">
+                <p class="text-sm text-gray-700">
+                    Showing <span class="font-medium">{{ emails.start_index }}</span> to <span class="font-medium">{{ emails.end_index }}</span> of <span class="font-medium">{{ emails.paginator.count }}</span> results
+                </p>
+            </div>
+            <div class="flex-1 flex justify-between sm:justify-end">
+                {% if emails.has_previous %}
+                <a href="?page={{ emails.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Previous
+                </a>
+                {% endif %}
+                {% if emails.has_next %}
+                <a href="?page={{ emails.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Next
+                </a>
+                {% endif %}
+            </div>
+        </nav>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No emails found</h3>
+            {% if search_query %}
+            <p class="mt-1 text-sm text-gray-500">Try adjusting your search query.</p>
+            {% else %}
+            <p class="mt-1 text-sm text-gray-500">Get started by sending your first email.</p>
+            <div class="mt-6">
+                <a href="{% url 'prowize:compose_email' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Compose Email
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
